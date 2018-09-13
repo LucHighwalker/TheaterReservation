@@ -1,9 +1,13 @@
 const express = require('express');
 const app = express();
 
+const bodyParser = require('body-parser');
+
 var MongoClient = require('mongodb').MongoClient;
 
 let db = null;
+
+var urlEncodedParser = bodyParser.urlencoded({extended: false});
 
 MongoClient.connect('mongodb://localhost:27017/theaterReservation', { useNewUrlParser: true }, function (err, client) {
   if (err) throw err
@@ -11,6 +15,10 @@ MongoClient.connect('mongodb://localhost:27017/theaterReservation', { useNewUrlP
   db = client.db('theaterReservation');
 
   console.log('databse connected');
+
+  app.listen(4200, () => {
+      console.log('Theater reservations is listening on localhost:4200');
+  });
 });
 
 app.get('/', (req, res) => {
@@ -18,8 +26,28 @@ app.get('/', (req, res) => {
 });
 
 app.get('/theaters', (req, res) => {
+    var theaters = db.collection('theaters');
+
+    theaters.find({}).toArray((err, theaterList) => {
+        console.log(theaterList);
+    });
     //shows list of theaters
     res.json({'stub': `[${req.originalUrl}] Endpoint works! Replace me in Step 2.`});
+});
+
+app.post('/theaters/new', urlEncodedParser, (req, res) => {
+    var newTheater = JSON.parse(JSON.stringify(req.body));
+
+    var theaters = db.collection('theaters');
+
+    theaters.insertOne({
+       name: newTheater.name 
+    });
+
+    console.log(newTheater);
+
+    res.json({'stub': `[${req.originalUrl}]`,
+    'req': `{${newTheater}}`});
 });
 
 app.get('/theaters/:id', (req, res) => {
@@ -40,8 +68,4 @@ app.get('/reservations', (req, res) => {
 app.get('/reservations/:id', (req, res) => {
     //shows specific reservation
     res.json({'stub': `[${req.originalUrl}] Endpoint works! Replace me in Step 2.`});
-});
-
-app.listen(4200, () => {
-    console.log('Theater reservations is listening on localhost:4200');
 });
