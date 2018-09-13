@@ -15,7 +15,7 @@ var urlEncodedParser = bodyParser.urlencoded({
 
 MongoClient.connect('mongodb://localhost:27017/theaterReservation', {
     useNewUrlParser: true
-}, function (err, client) {
+}, (err, client) => {
     if (err) throw err
 
     db = client.db('theaterReservation');
@@ -57,7 +57,7 @@ app.post('/theaters/new', urlEncodedParser, (req, res) => {
     console.log(newTheater);
 
     res.json({
-        'stub': `[${req.originalUrl}]`,
+        'stub': `[${req.originalUrl}] Endpoint works! `,
         'req': `{${newTheater}}`
     });
 });
