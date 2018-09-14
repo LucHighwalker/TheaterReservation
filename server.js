@@ -51,7 +51,9 @@ app.post('/theaters/new', urlEncodedParser, (req, res) => {
     var theaters = db.collection('theaters');
 
     theaters.insertOne({
-        name: newTheater.name
+        name: newTheater.name,
+        seats: newTheater.seats,
+        seatsAvailable: newTheater.seatsAvailable
     });
 
     console.log(newTheater);
@@ -80,11 +82,52 @@ app.get('/theaters/:id', (req, res) => {
     });
 });
 
-app.post('/theaters/:id/reserve', (req, res) => {
-    //reserves seat at theter
-    res.json({
-        'stub': `[${req.originalUrl}] Endpoint works! `
-    });
+app.post('/theaters/:id/reserve', urlEncodedParser, (req, res) => {
+    var id = req.params.id;
+
+    var row = req.body.row;
+    var seat = req.body.seat;
+
+    var theaters = db.collection('theaters');
+
+    theaters.findOne({
+            _id: ObjectId(id)
+        })
+        .then((resp) => {
+            let theater = resp;
+            if (theater.seats[row][seat] === 0) {
+                theater.seats[row][seat] = 1;
+                theater.seatsAvailable -= 1;
+                theaters.findOneAndUpdate({
+                    _id: ObjectId(id)
+                }, {
+                    $set: {
+                        seats: theater.seats,
+                        seatsAvailable: theater.seatsAvailable
+                    }
+                }, {
+                    upsert: true
+                }, (err, doc) => {
+                    if (err) throw err
+
+                    res.json({
+                        'stub': `[${req.originalUrl}] Endpoint works! `,
+                        'doc': `{${doc}}`
+                    });
+                });
+            } else {
+                res.json({
+                    'stub': `[${req.originalUrl}] Endpoint works! `,
+                    'res': `seat already reserved`
+                });
+            }
+        }).catch((error) => {
+            console.error(error);
+            res.json({
+                'stub': `[${req.originalUrl}] Endpoint works! `,
+                'err': `{${error}}`
+            });
+        });
 });
 
 app.get('/reservations', (req, res) => {
