@@ -14,7 +14,10 @@ database.connect('mongodb://localhost:27017/theaterReservation', 'theaterReserva
         console.log('Theater reservations is listening on localhost:4200');
     });
 }).catch((error) => {
-    throw error;
+    console.error(error);
+    res.json({
+        'error': `[${error}]!`
+    });
 });
 
 app.get('/', (req, res) => {
@@ -30,7 +33,10 @@ app.get('/theaters', (req, res) => {
             'stub': `[${req.originalUrl}] Endpoint works! `
         });
     }).catch((error) => {
-        throw error;
+        console.error(error);
+        res.json({
+            'error': `[${error}]!`
+        });
     });
 });
 
@@ -44,7 +50,10 @@ app.post('/theaters/new', urlEncodedParser, (req, res) => {
             'req': `{${newTheater}}`
         });
     }).catch((error) => {
-        throw error;
+        console.error(error);
+        res.json({
+            'error': `[${error}]!`
+        });
     });
 });
 
@@ -57,7 +66,10 @@ app.get('/theaters/:id', (req, res) => {
             'stub': `[${req.originalUrl}] Endpoint works! `
         });
     }).catch((error) => {
-        throw error;
+        console.error(error);
+        res.json({
+            'error': `[${error}]!`
+        });
     });
 });
 
@@ -75,7 +87,10 @@ app.post('/theaters/:id/reserve', urlEncodedParser, (req, res) => {
             'stub': `[${req.originalUrl}] Endpoint works! `
         });
     }).catch((error) => {
-        throw error;
+        console.error(error);
+        res.json({
+            'error': `[${error}]!`
+        });
     });
 });
 
@@ -102,6 +117,9 @@ app.post('/reservations/:id/confirm', (req, res) => {
             'stub': `[${req.originalUrl}] Endpoint works! `
         });
     }).catch((error) => {
-        throw error;
+        console.error(error);
+        res.json({
+            'error': `[${error}]!`
+        });
     });
 });

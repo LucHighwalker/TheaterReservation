@@ -87,6 +87,22 @@ function update(collection, id, update) {
     });
 }
 
+function destroy(collection, id) {
+    return new Promise((resolve, reject) => {
+        let col = checkCol(collection);
+
+        col.deleteOne({
+            _id: ObjectId(id)
+        }, (err, resp) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(resp);
+            }
+        });
+    });
+}
+
 function reserveSeat(id, rows, seats) {
     return new Promise((resolve, reject) => {
         var rowsArray = JSON.parse(rows);
@@ -142,38 +158,51 @@ function confirmReservation(sessionId) {
         find(sessions, sessionId).then((session) => {
             let expiration = session.sessionExpiration ? session.sessionExpiration : null;
 
+            let valid = true;
+
             if (expiration === null || new Date() > expiration) {
-                // delete session
-                reject('session expired');
+                valid = false;
+                destroy(sessions, sessionId).then(() => {
+                    reject('session expired');
+                }).catch((err) => {
+                    reject(err);
+                });
             }
 
             let theaterId = session.theaterId ? session.theaterId : null;
 
             if (theaterId === null) {
-                //delete session
-                reject('missing theater id')
-            }
-
-            find(theaters, theaterId).then((theater) => {
-                let seatsAvailable = theater.seatsAvailable - session.seatsTaken;
-
-                let data = {
-                    seats: session.seats,
-                    seatsAvailable: seatsAvailable
-                }
-
-                update(theaters, theaterId, data).then((resp) => {
-                    resolve(resp);
+                valid = false;
+                destroy(sessions, sessionId).then(() => {
+                    reject('missing theater id');
                 }).catch((err) => {
                     reject(err);
                 });
 
-            }).catch((err) => {
-                reject(err)
-            });
+            }
+
+            if (valid) {
+                find(theaters, theaterId).then((theater) => {
+                    let seatsAvailable = theater.seatsAvailable - session.seatsTaken;
+
+                    let data = {
+                        seats: session.seats,
+                        seatsAvailable: seatsAvailable
+                    }
+
+                    update(theaters, theaterId, data).then((resp) => {
+                        resolve(resp);
+                    }).catch((err) => {
+                        reject(err);
+                    });
+
+                }).catch((err) => {
+                    reject(err)
+                });
+            }
         }).catch((err) => {
             reject(err);
-        })
+        });
     });
 }
 
@@ -188,6 +217,7 @@ module.exports = {
     find: find,
     create: create,
     update: update,
+    destroy: destroy,
     reserveSeat: reserveSeat,
     confirmReservation: confirmReservation
 };
