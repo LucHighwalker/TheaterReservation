@@ -4,6 +4,8 @@ const MongoClient = require('mongodb').MongoClient;
 
 var db = null;
 
+const sessExp = 86400000; // session expiration = 1 day
+
 function connect(url, name) {
     return new Promise((resolve, reject) => {
         MongoClient.connect(url, {
@@ -76,11 +78,14 @@ function reserveSeat(id, rows, seats) {
         }
 
         find(theaters, id).then((theater) => {
+            var date = new Date();
+            var expiration = new Date(date.getTime() + sessExp);
+
             var theaterSess = theater;
 
             theaterSess._id = new ObjectId();
-
-            console.log(theaterSess);
+            theaterSess.sessionCreation = date;
+            theaterSess.sessionExpiration = expiration;
 
             for (var i = 0; i < rowsArray.length; i++) {
                 let row = rowsArray[i];

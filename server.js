@@ -3,8 +3,6 @@ const app = express();
 
 const bodyParser = require('body-parser');
 
-const ObjectId = require('mongodb').ObjectId;
-
 const database = require('./database');
 
 var urlEncodedParser = bodyParser.urlencoded({
