@@ -92,3 +92,16 @@ app.get('/reservations/:id', (req, res) => {
         'stub': `[${req.originalUrl}] Endpoint works! `
     });
 });
+
+app.post('/reservations/:id/confirm', (req, res) => {
+    let id = req.params.id;
+
+    database.confirmReservation(id).then((resp) => {
+        console.log(resp);
+        res.json({
+            'stub': `[${req.originalUrl}] Endpoint works! `
+        });
+    }).catch((error) => {
+        throw error;
+    });
+});
