@@ -63,53 +63,23 @@ app.get('/theaters/:id', (req, res) => {
     });
 });
 
-// app.post('/theaters/:id/reserve', urlEncodedParser, (req, res) => {
-//     var id = req.params.id;
+app.post('/theaters/:id/reserve', urlEncodedParser, (req, res) => {
+    let id = req.params.id;
 
-//     var row = req.body.row;
-//     var seat = req.body.seat;
+    let body = JSON.parse(JSON.stringify(req.body));
 
-//     var theaters = db.collection('theaters');
+    var rows = JSON.parse(JSON.stringify(body.rows));
+    var seats = JSON.parse(JSON.stringify(body.seats));
 
-//     theaters.findOne({
-//             _id: ObjectId(id)
-//         })
-//         .then((resp) => {
-//             let theater = resp;
-//             if (theater.seats[row][seat] === 0) {
-//                 theater.seats[row][seat] = 1;
-//                 theater.seatsAvailable -= 1;
-//                 theaters.findOneAndUpdate({
-//                     _id: ObjectId(id)
-//                 }, {
-//                     $set: {
-//                         seats: theater.seats,
-//                         seatsAvailable: theater.seatsAvailable
-//                     }
-//                 }, {
-//                     upsert: true
-//                 }, (err, doc) => {
-//                     if (err) throw err
-
-//                     res.json({
-//                         'stub': `[${req.originalUrl}] Endpoint works! `,
-//                         'doc': `{${doc}}`
-//                     });
-//                 });
-//             } else {
-//                 res.json({
-//                     'stub': `[${req.originalUrl}] Endpoint works! `,
-//                     'res': `seat already reserved`
-//                 });
-//             }
-//         }).catch((error) => {
-//             console.error(error);
-//             res.json({
-//                 'stub': `[${req.originalUrl}] Endpoint works! `,
-//                 'err': `{${error}}`
-//             });
-//         });
-// });
+    database.reserveSeat(id, rows, seats).then((session) => {
+        console.log(session);
+        res.json({
+            'stub': `[${req.originalUrl}] Endpoint works! `
+        });
+    }).catch((error) => {
+        throw error;
+    });
+});
 
 app.get('/reservations', (req, res) => {
     //shows list of user's reservatiosn

@@ -23,7 +23,7 @@ function connect(url, name) {
 
 function find(collection, id = null) {
     return new Promise((resolve, reject) => {
-        let col = db.collection(collection);
+        let col = checkCol(collection);
 
         if (id !== null) {
             col.findOne(ObjectId(id), (err, resp) => {
@@ -47,7 +47,7 @@ function find(collection, id = null) {
 
 function create(collection, item) {
     return new Promise((resolve, reject) => {
-        let col = db.collection(collection);
+        let col = checkCol(collection);
 
         col.insertOne(item, (err, resp) => {
             if (err) {
@@ -59,8 +59,63 @@ function create(collection, item) {
     });
 }
 
+function reserveSeat(id, rows, seats) {
+    return new Promise((resolve, reject) => {
+        var theaters = db.collection('theaters');
+        var session = db.collection('sessions');
+
+        var rowsArray = JSON.parse(rows);
+        var seatsArray = JSON.parse(seats);
+
+        if (rowsArray.length !== seatsArray.length) {
+            reject({
+                reason: 'array lengths do not match',
+                row: rowsArray,
+                seat: seatsArray
+            });
+        }
+
+        find(theaters, id).then((theater) => {
+            var theaterSess = theater;
+
+            theaterSess._id = new ObjectId();
+
+            console.log(theaterSess);
+
+            for (var i = 0; i < rowsArray.length; i++) {
+                let row = rowsArray[i];
+                let seat = seatsArray[i];
+
+                if (theaterSess.seats[row][seat] === 0) {
+                    theaterSess.seats[row][seat] = 1;
+                    theaterSess.seatsAvailable -= 1;
+                } else {
+                    reject({
+                        reason: 'seat already reserved',
+                        row: row,
+                        seat: seat
+                    });
+                }
+            }
+
+            create(session, theaterSess).then((session) => {
+                resolve(session.ops[0]._id);
+            });
+        }).catch((err) => {
+            reject(err);
+        });
+    });
+}
+
+
+//helpers
+function checkCol(collection) {
+    return typeof collection === 'string' ? db.collection(collection) : collection;
+}
+
 module.exports = {
     connect: connect,
     find: find,
-    create: create
+    create: create,
+    reserveSeat: reserveSeat
 };
